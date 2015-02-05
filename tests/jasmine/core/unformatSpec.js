@@ -13,8 +13,8 @@ describe('unformat()', function(){
         expect( accounting.unformat('&*()$ -123,456') ).toBe( -123456 );
         expect( accounting.unformat(';$@#$%^&-123,456.78') ).toBe( -123456.78 );
     });
-    
-    it('should accept different decimal separators', function(){    
+
+    it('should accept different decimal separators', function(){
         expect( accounting.unformat('$ 123,456', ',') ).toBe( 123.456 );
         expect( accounting.unformat('$ 123456|78', '|') ).toBe( 123456.78 );
         expect( accounting.unformat('&*()$ 123>456', '>') ).toBe( 123.456 );
@@ -28,4 +28,8 @@ describe('unformat()', function(){
         expect( vals[2] ).toBe( 12345678.901 );
     });
 
+    it('should return NaN when returnNaN option is truthy', function(){
+      var val = accounting.unformat('abcdefg', '.', {returnNaN: true});
+      expect( isNaN(val) ).toBe(true);
+    });
 });

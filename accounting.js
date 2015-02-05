@@ -169,14 +169,23 @@
 	 * Alias: `accounting.parse(string)`
 	 *
 	 * Decimal must be included in the regular expression to match floats (defaults to
-	 * accounting.settings.number.decimal), so if the number uses a non-standard decimal 
+	 * accounting.settings.number.decimal), so if the number uses a non-standard decimal
 	 * separator, provide it as the second argument.
 	 *
 	 * Also matches bracketed negatives (eg. "$ (1.99)" => -1.99)
 	 *
-	 * Doesn't throw any errors (`NaN`s become 0) but this may change in future
+	 * options:
+ 	 *   returnNaN: if truthy unformat() will return NaN instead of returning 0
+ 	 *   in the case of an error.
+ 	 *
+ 	 * Doesn't throw any errors (`NaN`s become 0 unless options.returnNaN is truthy)
 	 */
-	var unformat = lib.unformat = lib.parse = function(value, decimal) {
+	var unformat = lib.unformat = lib.parse = function(value, decimal, options) {
+    // parse options
+ 		var returnNaN = (typeof options == 'object')
+ 		                && typeof(options['returnNaN'] != undefined)
+ 		                && options.returnNaN;
+
 		// Recursively unformat arrays:
 		if (isArray(value)) {
 			return map(value, function(val) {
@@ -197,13 +206,14 @@
 		var regex = new RegExp("[^0-9-" + decimal + "]", ["g"]),
 			unformatted = parseFloat(
 				("" + value)
-				.replace(/\((.*)\)/, "-$1") // replace bracketed values with negatives
+				.replace(/\((^[\s]*)\)/, "-$1") // replace bracketed values with negatives when
+                                        // there are non-whitespace values in the backets
 				.replace(regex, '')         // strip out any cruft
 				.replace(decimal, '.')      // make sure decimal point is standard
 			);
 
 		// This will fail silently which may cause trouble, let's wait and see:
-		return !isNaN(unformatted) ? unformatted : 0;
+ 		return isNaN(unformatted) ? (returnNaN ? NaN : 0) : unformatted;
 	};
 
 
